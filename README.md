@@ -1,7 +1,7 @@
 # noswoosh
 
-Instant, animation-free switching between macOS Spaces (**3-finger swipe** or
-**Ctrl+←/→**). Works on **macOS 26.6+ and 27**, no SIP disabling, no global Reduce
+Instant, animation-free switching between macOS Spaces with **Ctrl+←/→**.
+**3-finger swipes** retain the native macOS animation. Works on **macOS 26.6+ and 27**, no SIP disabling, no global Reduce
 Motion.
 
 [![Latest release](https://img.shields.io/github/v/release/mmathys/noswoosh?color=blue)](https://github.com/mmathys/noswoosh/releases/latest)
@@ -24,8 +24,8 @@ it's the one step that can't be scripted. Approve the prompt on first start; if 
 dismiss it, noswoosh opens **System Settings → Privacy & Security → Accessibility**
 for you, where you can add `/Applications/noswoosh.app` yourself.
 
-That's it — the daemon picks the grant up within a second, and both a **3-finger
-horizontal swipe** and **Ctrl+←/→** switch spaces instantly.
+That's it — the daemon picks the grant up within a second, and **Ctrl+←/→** switches spaces instantly. Three-finger horizontal swipes keep
+the native macOS animation.
 
 <details>
 <summary><b>Build from source instead</b></summary>
@@ -49,14 +49,14 @@ build, which keeps the grant across rebuilds.
 
 ## Usage
 
-Two ways to switch, both instant:
+Keyboard shortcuts switch instantly; trackpad swipes keep native animation:
 
-- **3-finger horizontal swipe** — your normal Spaces gesture, minus the animation.
-  noswoosh intercepts the real swipe and replaces it with an instant switch;
+- **3-finger horizontal swipe** — your normal Spaces gesture with native animation;
   vertical swipes (Mission Control, App Exposé) are left untouched.
 - **Ctrl+→ / Ctrl+←** — one space right/left.
 
-Movement is clamped at the first and last space, so there's no rubber-band bounce.
+Hotkey and CLI movement is clamped at the first and last space, so there's no
+rubber-band bounce. Trackpad boundary behavior is controlled by macOS.
 
 Multi-display works exactly as it does without noswoosh: the switch applies to the
 display under the pointer, not the one holding keyboard focus. With "Displays have
@@ -99,11 +99,9 @@ runs through the Dock's own pipeline — so Mission Control, focus, wallpaper an
 state all stay consistent — but the animation has zero distance to travel, making it
 instant.
 
-Two input sources feed one switch core. An **event tap** watches for real 3-finger
-horizontal swipes, suppresses them before the Dock animates, and posts the instant
-switch — so a natural swipe still works, just without the slide. A Ctrl+arrow **hotkey**
-posts the same switch directly. The two are independent: if the tap is ever disabled by
-the system, Ctrl+←/→ keeps working.
+The Ctrl+arrow **hotkey** and the `left` / `right` CLI commands use the instant
+switch core. No gesture event tap is installed, so real trackpad swipes go directly
+to macOS with their native animation and interactive tracking.
 
 **macOS 27** tightened this up: it validates synthetic Dock swipes against a serialized
 IOHID payload the older technique doesn't carry, so pre-27 builds silently stop
@@ -158,11 +156,11 @@ switch (the switch re-activates macOS's pick on landing and wipes it out).
 
 ## Troubleshooting
 
-**Ctrl+arrows or swipes do nothing.** Check `~/Library/Logs/noswoosh.log`. A
+**Ctrl+arrows do nothing.** Check `~/Library/Logs/noswoosh.log`. A
 `waiting for Accessibility permission` line as the last entry means the daemon still
 isn't trusted; once you grant it, the log shows `Accessibility granted` and the daemon
-restarts itself. A `could not create swipe event tap` line means the same thing — the
-tap needs Accessibility, and the restart after granting fixes it.
+restarts itself when managed by launchd. For trackpad swipes, check the native
+Spaces gesture in System Settings > Trackpad > More Gestures.
 
 **The Accessibility checkbox won't stick.** Remove the entry with "−" and let the
 daemon re-trigger the prompt, then approve it. If it still won't take:
